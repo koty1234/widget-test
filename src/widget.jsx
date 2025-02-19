@@ -49,19 +49,44 @@ const expandedWidgetStyle = {
   overflow: 'auto'
 };
 
+// New style for the circle X close button
+const circleButtonStyle = {
+  position: 'fixed',
+  bottom: '10px',  // Positioned where the small widget is when medium is open.
+  right: '10px',
+  width: '40px',
+  height: '40px',
+  borderRadius: '50%',
+  backgroundColor: '#dc3545', // Use a distinct color (red) for the close button.
+  color: '#fff',
+  border: 'none',
+  fontSize: '1.5rem',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1001
+};
+
 const Widget = (partnerId) => {
   console.log(partnerId);
   const [widgetState, setWidgetState] = useState('small');
 
   // When in the small state, automatically transition to medium after 3 seconds.
   useEffect(() => {
+    let time;
+    if (partnerId === '1') {
+      time = 3000;
+    } else {
+      time = 3000;
+    }
     if (widgetState === 'small') {
       const timer = setTimeout(() => {
         setWidgetState('medium');
-      }, 3000);
+      }, time);
       return () => clearTimeout(timer);
     }
-  }, [widgetState]);
+  }, [widgetState, partnerId]);
 
   // Handlers for each component's click actions
   const handleSmallClick = () => {
@@ -84,7 +109,19 @@ const Widget = (partnerId) => {
   if (widgetState === 'small') {
     return <SmallWidget onClick={handleSmallClick} />;
   } else if (widgetState === 'medium') {
-    return <MediumWidget onExpand={handleExpand} onClose={handleClose} />;
+    return (
+      <>
+        <MediumWidget onExpand={handleExpand} onClose={handleClose} />
+        {/* Extra circle X button rendered separately */}
+        <button
+          style={circleButtonStyle}
+          onClick={handleClose}
+          aria-label="Close Widget"
+        >
+          &times;
+        </button>
+      </>
+    );
   } else if (widgetState === 'full') {
     return <FullWidget onClick={handleFullClick} />;
   }
