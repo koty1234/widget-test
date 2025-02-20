@@ -1,6 +1,6 @@
 import React from "react";
 
-function BeautifulButton({ title, backgroundColor = "#1976d2", onClick, style = {} }) {
+function BeautifulButton({ title, icon, backgroundColor = "#1976d2", onClick, style = {} }) {
   const combinedStyle = {
     "--bg-color": backgroundColor,
     ...style,
@@ -20,6 +20,9 @@ function BeautifulButton({ title, backgroundColor = "#1976d2", onClick, style = 
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Space between icon and text */
           }
 
           .beautiful-button:hover {
@@ -31,6 +34,12 @@ function BeautifulButton({ title, backgroundColor = "#1976d2", onClick, style = 
             transform: translateY(0);
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
           }
+
+          .button-icon {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+          }
         `}
       </style>
       <button
@@ -38,6 +47,7 @@ function BeautifulButton({ title, backgroundColor = "#1976d2", onClick, style = 
         style={combinedStyle}
         onClick={onClick}
       >
+        {icon && <span className="button-icon">{icon}</span>}
         {title}
       </button>
     </>

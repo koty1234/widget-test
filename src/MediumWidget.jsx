@@ -1,25 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BeautifulTextInput from './components/BeautifulTextInput';
 import BeautifulButton from './components/BeautifulButton';
 import BeautifulTypography from './components/BeautifulTypography';
+import ChatComponent from './ChatComponent';
+import { FaPhone } from 'react-icons/fa';
+import { FaMessage } from 'react-icons/fa6';
+import { Button, Stack } from '@mui/material';
 
-const MIN_RADIUS = 125; // collapsed state radius
+const MIN_RADIUS = 100; // collapsed state radius
 
-const MediumWidget = () => {
+const MediumWidget = (props) => {
   // Start with the minimized version.
   const [radius, setRadius] = useState(MIN_RADIUS);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [newMessage, setNewMessage] = useState(null);
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-  const MAX_RADIUS = isMobile ? 400 : 600;
+  const MAX_RADIUS = isExpanded ? (isMobile ? 400 : 600) : MIN_RADIUS;
 
   // Toggle expansion/collapse when clicking the top header section.
   const handleToggle = (e) => {
     e.stopPropagation();
-    if (radius === MIN_RADIUS) {
-      setRadius(MAX_RADIUS);
-    } else {
-      setRadius(MIN_RADIUS);
+    setIsExpanded(!isExpanded);
+  };
+
+  // When the widget is expanded, wait two seconds then trigger the onExpand prop to switch to full widget.
+  useEffect(() => {
+    if (isExpanded && props.onExpand) {
+      const timer = setTimeout(() => {
+        props.onExpand();
+      }, 500000); // 2 seconds delay
+      return () => clearTimeout(timer); // Clear the timer if the component unmounts or radius changes.
     }
+  }, [isExpanded, props.onExpand]);
+
+  const handleSendMessage = (message) => {
+    setNewMessage(message);
   };
 
   // Widget container style including a cool double-line border.
@@ -28,11 +44,11 @@ const MediumWidget = () => {
     bottom: '0',
     left: '50%',
     transform: 'translateX(-50%)',
-    width: `${radius * 2}px`, // widget width is twice the radius
-    height: `${radius}px`,
+    width: `${isExpanded ? MAX_RADIUS * 1 : MIN_RADIUS * 1.5}px`, // Adjust width for non-expanded state
+    height: `${MAX_RADIUS}px`,
     fontFamily: 'sans-serif',
     zIndex: 1000,
-    borderRadius: `${radius}px ${radius}px 0 0`,
+    borderRadius: `${MAX_RADIUS}px ${MAX_RADIUS}px 0 0`,
     overflow: 'hidden',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
     transition: 'all 0.5s ease',
@@ -40,21 +56,24 @@ const MediumWidget = () => {
     flexDirection: 'column',
     border: '3px double #007BFF',
     // (Optional) Apply a different background to the entire widget when minimized.
-    background: radius === MIN_RADIUS 
-      ? "url('https://static.vecteezy.com/system/resources/thumbnails/006/849/778/small_2x/abstract-background-with-soft-gradient-color-and-dynamic-shadow-on-background-background-for-wallpaper-eps-10-free-vector.jpg')" 
+    background: MAX_RADIUS === MIN_RADIUS 
+      ? "url('https://static.vecteezy.com/system/resources/thumbnails/006/849/778/small_2x/abstract-background-with-soft-gradient-color-and-dynamic-shadow-on-background-background-for-wallpaper-eps-10-free-vector.jpg')"
       : 'none',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
+    ':hover': {
+      width: `${isExpanded ? MAX_RADIUS * 2 : MAX_RADIUS}px`, // Expand to 50% of the fully expanded state on hover
+    },
   };
 
   // Header styles: when the widget is minimized, we use a background image instead of white.
   const headerContainerStyle = {
-    background: radius === MIN_RADIUS 
-      ? "url('/path/to/your/header-bg.jpg')"  // Set your header background image path here.
-      : '#fff',
+    background: MAX_RADIUS === MIN_RADIUS 
+      ? "none"
+      : "url('https://static.vecteezy.com/system/resources/thumbnails/006/849/778/small_2x/abstract-background-with-soft-gradient-color-and-dynamic-shadow-on-background-background-for-wallpaper-eps-10-free-vector.jpg')",
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    padding: '15px',
+    padding: '10px',
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
@@ -66,19 +85,21 @@ const MediumWidget = () => {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    marginTop: '20px',
-    marginBottom: '20px',
+    marginTop: '10px',
+    marginBottom: '10px',
   };
 
   // Style for the logo image.
   const logoStyle = {
     width: '80px',
-    marginBottom: '10px',
+    height: '80px', // Ensure the height is the same as the width
+    marginBottom: '5px',
+    borderRadius: '50%', // Make the image circular
+    overflow: 'hidden', // Ensure the image doesn't overflow the circle
   };
 
   const bodyContainerStyle = {
-    backgroundColor: '#e7edf2',
-    padding: '20px',
+    backgroundColor: "fff",
     flex: 1,
   };
 
@@ -88,12 +109,6 @@ const MediumWidget = () => {
     padding: '10px',
     textAlign: 'center',
     fontSize: '0.8rem',
-    color: '#333',
-  };
-
-  const subHeaderStyle = {
-    margin: '0 0 20px',
-    fontSize: '0.95rem',
     color: '#333',
   };
 
@@ -113,17 +128,14 @@ const MediumWidget = () => {
     marginTop: '10px',
   };
 
-  const buttonContainerStyle = {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    marginTop: '10px',
+  const buttonSectionStyle = {
+    marginBottom: '15px', // Add some space below the buttons
   };
 
   // Updated content wrapper with extra vertical padding.
   const contentWrapperStyle = {
-    paddingLeft: `${radius * 0.15}px`,
-    paddingRight: `${radius * 0.15}px`,
-    paddingTop: '15px',
+    paddingLeft: `20px`,
+    paddingRight: `20px`,
     paddingBottom: '15px',
     boxSizing: 'border-box',
   };
@@ -133,57 +145,24 @@ const MediumWidget = () => {
       {/* Header Section */}
       <div style={headerContainerStyle} onClick={handleToggle}>
         <div style={headerContentStyle}>
-          {/* Replace '/logo.png' with your actual logo path */}
-          <img src="/logo.png" alt="Logo" style={logoStyle} />
-          <BeautifulTypography color="#000" text="24/7 Assistance" variant="h3" />
+          <img src="public/assets/images/headshot.png" alt="Logo" style={logoStyle} />
         </div>
       </div>
-      
+
+      {/* New Button Section using MUI Stack */}
+      <Stack direction="row" spacing={2} justifyContent="center" style={buttonSectionStyle}>
+        <Button variant="text" startIcon={<FaPhone />} onClick={() => handleSendMessage('Please call me')}>
+          Call me
+        </Button>
+        <Button variant="text" startIcon={<FaMessage />} onClick={() => handleSendMessage('Please text me')}>
+          Text me
+        </Button>
+      </Stack>
+
       {/* Body Section */}
       <div style={bodyContainerStyle}>
         <div style={contentWrapperStyle}>
-          <p style={subHeaderStyle}>
-            Chat with Sarah, our AI assistant, to book an appointment or ask us a question.
-          </p>
-          
-          <div style={inputContainerStyle}>
-            <label style={labelStyle} htmlFor="name">Name</label>
-            <BeautifulTextInput
-              id="name"
-              placeholder="Name"
-              style={{ width: '100%', padding: '8px' }}
-            />
-          </div>
-          
-          <div style={inputContainerStyle}>
-            <label style={labelStyle} htmlFor="mobile">Mobile Phone</label>
-            <BeautifulTextInput
-              id="mobile"
-              placeholder="(555) 555-5555"
-              style={{ width: '100%', padding: '8px' }}
-            />
-          </div>
-          
-          <div style={inputContainerStyle}>
-            <label style={labelStyle} htmlFor="message">Message</label>
-            <BeautifulTextInput
-              id="message"
-              placeholder="How can we help?"
-              style={{ width: '100%', padding: '8px' }}
-              multiline
-            />
-          </div>
-          
-          <p style={disclaimerStyle}>
-            By submitting, you authorize Midland Sand to text/call the number above by automated means 
-            &amp; AI-generated calls/content. Msg/data rates apply, msg frequency varies. Consent is not 
-            a condition of purchase.
-          </p>
-          
-          <div style={buttonContainerStyle}>
-            <BeautifulButton title="Send" style={{ marginRight: '10px' }} />
-            {/* The expand button has been removed — toggle via header click */}
-          </div>
+          {isExpanded && <ChatComponent newMessage={newMessage} />}
         </div>
       </div>
       
