@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaPaperPlane } from 'react-icons/fa';
 
-const ChatComponent = ({ newMessage }) => {
+const ChatComponent = ({ newMessage, isMaximized, setIsMaximized }) => {
   const [messages, setMessages] = useState(() => {
     const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
     const timestamp = localStorage.getItem('chatTimestamp');
@@ -75,6 +75,9 @@ const ChatComponent = ({ newMessage }) => {
     if (newMessageState.trim()) {
       setMessages((prev) => [...prev, { text: newMessageState, sender: 'user' }]);
       setNewMessageState('');
+      if(messages.length > 4) {
+        setIsMaximized(true);
+      }
     }
   };
 
@@ -94,7 +97,7 @@ const ChatComponent = ({ newMessage }) => {
 
   // Styles
   const chatContainerStyle = {
-    height: '400px',
+    height: isMaximized ? '600px' : '400px',
     display: 'flex',
     flexDirection: 'column',
     borderRadius: '8px',
