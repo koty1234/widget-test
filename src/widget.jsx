@@ -70,23 +70,8 @@ const circleButtonStyle = {
 
 const Widget = (partnerId) => {
   console.log(partnerId);
-  const [widgetState, setWidgetState] = useState('small');
+  const [widgetState, setWidgetState] = useState('medium');
 
-  // When in the small state, automatically transition to medium after 3 seconds.
-  useEffect(() => {
-    let time;
-    if (partnerId === '1') {
-      time = 3000;
-    } else {
-      time = 3000;
-    }
-    if (widgetState === 'small') {
-      const timer = setTimeout(() => {
-        setWidgetState('medium');
-      }, time);
-      return () => clearTimeout(timer);
-    }
-  }, [widgetState, partnerId]);
 
   // Handlers for each component's click actions
   const handleSmallClick = () => {
@@ -98,11 +83,11 @@ const Widget = (partnerId) => {
   };
 
   const handleClose = () => {
-    setWidgetState('small');
+    setWidgetState('medium');
   };
 
   const handleFullClick = () => {
-    setWidgetState('small');
+    setWidgetState('medium');
   };
 
   // Render the appropriate widget state.
@@ -112,14 +97,6 @@ const Widget = (partnerId) => {
     return (
       <>
         <MediumWidget onExpand={handleExpand} onClose={handleClose} />
-        {/* Extra circle X button rendered separately */}
-        <button
-          style={circleButtonStyle}
-          onClick={handleClose}
-          aria-label="Close Widget"
-        >
-          &times;
-        </button>
       </>
     );
   } else if (widgetState === 'full') {

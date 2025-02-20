@@ -1,44 +1,28 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import BeautifulTextInput from './components/BeautifulTextInput';
 import BeautifulButton from './components/BeautifulButton';
 import BeautifulTypography from './components/BeautifulTypography';
 
-const MIN_RADIUS = 150; // collapsed state radius
-const SNAP_THRESHOLD = 20; // pixel threshold for the snap gesture
+const MIN_RADIUS = 125; // collapsed state radius
 
-const MediumWidget = ({ onExpand, onClose }) => {
-  // `radius` defines the widget's height and half its width to preserve the semi‑circular shape.
-  const [radius, setRadius] = useState(225);
+const MediumWidget = () => {
+  // Start with the minimized version.
+  const [radius, setRadius] = useState(MIN_RADIUS);
 
-  // Determine whether we're on mobile (viewport width <= 768px)
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const MAX_RADIUS = isMobile ? 400 : 600;
 
-  // Refs for pointer event state
-  const initialPointerY = useRef(0);
-
-  // When the user begins the gesture...
-  const handlePointerDown = (e) => {
-    e.preventDefault();
-    initialPointerY.current = e.clientY;
-    // Capture the pointer so we keep receiving events even if the pointer moves away.
-    e.target.setPointerCapture(e.pointerId);
-  };
-
-  // On gesture end, decide whether to snap open or closed
-  const handlePointerUp = (e) => {
-    const delta = initialPointerY.current - e.clientY; // Positive means upward swipe.
-    if (delta > SNAP_THRESHOLD) {
-      // Swipe upward: open widget to maximum size.
+  // Toggle expansion/collapse when clicking the top header section.
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    if (radius === MIN_RADIUS) {
       setRadius(MAX_RADIUS);
-    } else if (delta < -SNAP_THRESHOLD) {
-      // Swipe downward: collapse widget to minimum size.
+    } else {
       setRadius(MIN_RADIUS);
     }
-    e.target.releasePointerCapture(e.pointerId);
   };
 
-  // The container's dimensions and borderRadius update smoothly thanks to a CSS transition.
+  // Widget container style including a cool double-line border.
   const widgetContainerStyle = {
     position: 'fixed',
     bottom: '0',
@@ -48,25 +32,57 @@ const MediumWidget = ({ onExpand, onClose }) => {
     height: `${radius}px`,
     fontFamily: 'sans-serif',
     zIndex: 1000,
-    // Top corners are rounded to create the semi‑circular shape.
     borderRadius: `${radius}px ${radius}px 0 0`,
     overflow: 'hidden',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-    transition: 'all 0.3s ease',  // smooth transitions for resizing
+    transition: 'all 0.5s ease',
+    display: 'flex',
+    flexDirection: 'column',
+    border: '3px double #007BFF',
+    // (Optional) Apply a different background to the entire widget when minimized.
+    background: radius === MIN_RADIUS 
+      ? "url('https://static.vecteezy.com/system/resources/thumbnails/006/849/778/small_2x/abstract-background-with-soft-gradient-color-and-dynamic-shadow-on-background-background-for-wallpaper-eps-10-free-vector.jpg')" 
+      : 'none',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
   };
 
+  // Header styles: when the widget is minimized, we use a background image instead of white.
   const headerContainerStyle = {
-    backgroundColor: '#007BFF',
-    padding: '20px',
-    color: '#fff',
+    background: radius === MIN_RADIUS 
+      ? "url('/path/to/your/header-bg.jpg')"  // Set your header background image path here.
+      : '#fff',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    padding: '15px',
     position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    cursor: 'pointer',
+  };
+
+  const headerContentStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: '20px',
+    marginBottom: '20px',
+  };
+
+  // Style for the logo image.
+  const logoStyle = {
+    width: '80px',
+    marginBottom: '10px',
   };
 
   const bodyContainerStyle = {
     backgroundColor: '#e7edf2',
     padding: '20px',
+    flex: 1,
   };
 
+  // Footer always sticks to the bottom.
   const footerContainerStyle = {
     backgroundColor: '#fff',
     padding: '10px',
@@ -78,7 +94,7 @@ const MediumWidget = ({ onExpand, onClose }) => {
   const subHeaderStyle = {
     margin: '0 0 20px',
     fontSize: '0.95rem',
-    color: '#e0eaff',
+    color: '#333',
   };
 
   const labelStyle = {
@@ -103,85 +119,33 @@ const MediumWidget = ({ onExpand, onClose }) => {
     marginTop: '10px',
   };
 
-  const closeButtonStyle = {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    background: 'transparent',
-    border: 'none',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    color: '#fff',
-  };
-
-  // Updated handle style: enlarged area with an arrow indicating the action.
-  const handleStyle = {
-    position: 'absolute',
-    bottom: '-10px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '40px',
-    height: '20px', // increased height to accommodate the arrow icon
-    backgroundColor: '#fff',
-    borderRadius: '3px',
-    cursor: 'ns-resize',
-    touchAction: 'none', // prevents native touch scrolling during the gesture
-    zIndex: 10,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-  };
-
-  // The arrow shows "open" (▲) when collapsed and "minimize" (▼) when expanded.
-  const arrowIcon = radius === MIN_RADIUS ? '▲' : '▼';
-
-  // New dynamic content wrapper to inset the content away from the curved edges.
+  // Updated content wrapper with extra vertical padding.
   const contentWrapperStyle = {
     paddingLeft: `${radius * 0.15}px`,
     paddingRight: `${radius * 0.15}px`,
+    paddingTop: '15px',
+    paddingBottom: '15px',
     boxSizing: 'border-box',
-  };
-
-  const handleExpand = (e) => {
-    e.stopPropagation();
-    onExpand();
-  };
-
-  const handleClose = (e) => {
-    e.stopPropagation();
-    onClose();
   };
 
   return (
     <div style={widgetContainerStyle}>
       {/* Header Section */}
-      <div style={headerContainerStyle}>
-        <button style={closeButtonStyle} onClick={handleClose} aria-label="Close Widget">
-          &times;
-        </button>
-        <div style={contentWrapperStyle}>
-          <BeautifulTypography color="#fff" text="We are here to help 24/7" variant="h3" />
-        </div>
-        {/* Snap Handle */}
-        <div
-          style={handleStyle}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-        >
-          <span style={{ fontSize: '14px', color: '#007BFF' }}>{arrowIcon}</span>
+      <div style={headerContainerStyle} onClick={handleToggle}>
+        <div style={headerContentStyle}>
+          {/* Replace '/logo.png' with your actual logo path */}
+          <img src="/logo.png" alt="Logo" style={logoStyle} />
+          <BeautifulTypography color="#000" text="24/7 Assistance" variant="h3" />
         </div>
       </div>
       
       {/* Body Section */}
       <div style={bodyContainerStyle}>
         <div style={contentWrapperStyle}>
-          {/* Secondary text moved into the body */}
           <p style={subHeaderStyle}>
             Chat with Sarah, our AI assistant, to book an appointment or ask us a question.
           </p>
           
-          {/* Name Input */}
           <div style={inputContainerStyle}>
             <label style={labelStyle} htmlFor="name">Name</label>
             <BeautifulTextInput
@@ -191,7 +155,6 @@ const MediumWidget = ({ onExpand, onClose }) => {
             />
           </div>
           
-          {/* Mobile Phone Input */}
           <div style={inputContainerStyle}>
             <label style={labelStyle} htmlFor="mobile">Mobile Phone</label>
             <BeautifulTextInput
@@ -201,7 +164,6 @@ const MediumWidget = ({ onExpand, onClose }) => {
             />
           </div>
           
-          {/* Message Input */}
           <div style={inputContainerStyle}>
             <label style={labelStyle} htmlFor="message">Message</label>
             <BeautifulTextInput
@@ -212,17 +174,15 @@ const MediumWidget = ({ onExpand, onClose }) => {
             />
           </div>
           
-          {/* Disclaimer */}
           <p style={disclaimerStyle}>
             By submitting, you authorize Midland Sand to text/call the number above by automated means 
             &amp; AI-generated calls/content. Msg/data rates apply, msg frequency varies. Consent is not 
             a condition of purchase.
           </p>
           
-          {/* Buttons */}
           <div style={buttonContainerStyle}>
             <BeautifulButton title="Send" style={{ marginRight: '10px' }} />
-            <button onClick={handleExpand}>Expand</button>
+            {/* The expand button has been removed — toggle via header click */}
           </div>
         </div>
       </div>
