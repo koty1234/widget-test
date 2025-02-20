@@ -49,24 +49,6 @@ const expandedWidgetStyle = {
   overflow: 'auto'
 };
 
-// New style for the circle X close button
-const circleButtonStyle = {
-  position: 'fixed',
-  bottom: '10px',  // Positioned where the small widget is when medium is open.
-  right: '10px',
-  width: '40px',
-  height: '40px',
-  borderRadius: '50%',
-  backgroundColor: '#dc3545', // Use a distinct color (red) for the close button.
-  color: '#fff',
-  border: 'none',
-  fontSize: '1.5rem',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1001
-};
 
 const Widget = (partnerId) => {
   console.log(partnerId);
@@ -97,6 +79,7 @@ const Widget = (partnerId) => {
     return (
       <>
         <MediumWidget onExpand={handleExpand} onClose={handleClose} />
+
       </>
     );
   } else if (widgetState === 'full') {

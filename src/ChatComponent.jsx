@@ -2,8 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { FaPaperPlane } from 'react-icons/fa';
 
 const ChatComponent = ({ newMessage }) => {
-  // Start with a single empty assistant message (so we can fill it in as we type)
-  const [messages, setMessages] = useState([{ text: '', sender: 'assistant' }]);
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+    const timestamp = localStorage.getItem('chatTimestamp');
+    const now = new Date().getTime();
+
+    // Check if the saved messages are older than 5 minutes
+    if (timestamp && now - timestamp > 5 * 60 * 1000) {
+      localStorage.removeItem('chatMessages');
+      localStorage.removeItem('chatTimestamp');
+      return [{ text: '', sender: 'assistant' }];
+    }
+
+    return savedMessages.length ? savedMessages : [{ text: '', sender: 'assistant' }];
+  });
+
   const [newMessageState, setNewMessageState] = useState('');
   const [typingComplete, setTypingComplete] = useState(false);
   const starterQuestions = [
@@ -14,6 +27,7 @@ const ChatComponent = ({ newMessage }) => {
   ];
 
   useEffect(() => {
+    if(messages.length === 1) {
     const textToType = "Hi There, I can help you find what you're looking for, just let me know...";
     let index = 0;
 
@@ -42,6 +56,7 @@ const ChatComponent = ({ newMessage }) => {
     }, 30);
 
     return () => clearInterval(interval);
+}
   }, []);
 
   useEffect(() => {
@@ -49,6 +64,11 @@ const ChatComponent = ({ newMessage }) => {
       setMessages((prev) => [...prev, { text: newMessage, sender: 'user' }]);
     }
   }, [newMessage]);
+
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+    localStorage.setItem('chatTimestamp', new Date().getTime());
+  }, [messages]);
 
   // Send user message
   const handleSendMessage = () => {
