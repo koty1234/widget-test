@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaPaperPlane } from 'react-icons/fa';
 
-const ChatComponent = ({ newMessage, isMaximized, setIsMaximized }) => {
+const ChatComponent = ({ newMessage, isMaximized, setIsMaximized, sendMessage, existingMessages }) => {
   const [messages, setMessages] = useState(() => {
-    const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-    const timestamp = localStorage.getItem('chatTimestamp');
-    const now = new Date().getTime();
-
-    // Check if the saved messages are older than 5 minutes
-    if (timestamp && now - timestamp > 5 * 60 * 1000) {
-      localStorage.removeItem('chatMessages');
-      localStorage.removeItem('chatTimestamp');
-      return [{ text: '', sender: 'assistant' }];
-    }
-
-    return savedMessages.length ? savedMessages : [{ text: '', sender: 'assistant' }];
+    console.log('existingMessages', existingMessages);
+    return existingMessages.length ? existingMessages : [{ content: '', role: 'assistant' }];
   });
 
   const [newMessageState, setNewMessageState] = useState('');
@@ -61,7 +51,7 @@ const ChatComponent = ({ newMessage, isMaximized, setIsMaximized }) => {
 
   useEffect(() => {
     if (newMessage) {
-      setMessages((prev) => [...prev, { text: newMessage, sender: 'user' }]);
+      setMessages((prev) => [...prev, { content: newMessage.content, role: newMessage.role }]);
     }
   }, [newMessage]);
 
@@ -73,8 +63,12 @@ const ChatComponent = ({ newMessage, isMaximized, setIsMaximized }) => {
   // Send user message
   const handleSendMessage = () => {
     if (newMessageState.trim()) {
-      setMessages((prev) => [...prev, { text: newMessageState, sender: 'user' }]);
+      const userMessage = { content: newMessageState, role: 'user' };
+      setMessages((prev) => [...prev, userMessage]);
       setNewMessageState('');
+      
+        sendMessage(newMessageState);
+      
       if(messages.length > 4) {
         setIsMaximized(true);
       }
@@ -92,7 +86,10 @@ const ChatComponent = ({ newMessage, isMaximized, setIsMaximized }) => {
   };
 
   const handleStarterClick = (question) => {
-    setMessages((prev) => [...prev, { text: question, sender: 'user' }]);
+    setMessages((prev) => [...prev, { content: question, role: 'user' }]);
+    
+    // Send starter question to medium widget
+    sendMessage(question);
   };
 
   // Styles
@@ -166,12 +163,12 @@ const ChatComponent = ({ newMessage, isMaximized, setIsMaximized }) => {
       {/* Messages */}
       <div style={chatMessagesContainerStyle}>
         {messages.map((message, index) => (
-          <div key={index} style={messageStyle(message.sender)}>
-            {message.text}
+          <div key={index} style={messageStyle(message.role)}>
+            {message.content}
           </div>
         ))}
 
-        {typingComplete && messages.filter(msg => msg.sender === 'user').length === 0 && (
+        {typingComplete && messages.filter(msg => msg.role === 'user').length === 0 && (
           <>
             {starterQuestions.map((question, index) => (
               <button
