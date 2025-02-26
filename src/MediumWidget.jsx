@@ -23,7 +23,7 @@ const MediumWidget = (props) => {
   // Initialize socket connection
   useEffect(() => {
     // Only connect when widget is expanded or when props.connect is true
-    if (isExpanded || props.connect) {
+    if (isExpanded) {
       // Check for existing userId in localStorage
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
@@ -34,7 +34,10 @@ const MediumWidget = (props) => {
       socketRef.current = io('https://hippo-gentle-quagga.ngrok-free.app', {
         auth: {
           token: storedToken || undefined
-        }
+        },
+        transports: ['websocket'],  // Force WebSocket transport
+        secure: true,               // Force secure connection
+        rejectUnauthorized: false   // Skip certificate validation (use in development only!)
       });
 
       // Socket event handlers
